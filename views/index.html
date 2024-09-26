@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Student Management</h1>
+
+        <form id="add-student-form" class="mb-3">
+            <input type="text" id="name" placeholder="Student Name" required><br>
+            <input type="number" id="age" placeholder="Age" required><br>
+            <select id="gender" required><br>
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+            <input type="text" id="major" placeholder="Major" required><br>
+            <button type="submit" class="btn btn-primary">Add Student</button><br>
+        </form>
+
+        <h2>All Students</h2>
+        <ul id="student-list" class="list-group"></ul>
+    </div>
+
+    <script>
+        const apiBaseUrl = 'http://localhost:5000/api';
+
+        async function fetchStudents() {
+            const res = await fetch(`${apiBaseUrl}/students`);
+            const students = await res.json();
+            const studentList = document.getElementById('student-list');
+            studentList.innerHTML = '';
+            students.forEach(student => {
+                studentList.innerHTML += `
+                    <li class="list-group-item">
+                        ${student.name} (${student.age}, ${student.gender}, ${student.major})
+                        <button onclick="deleteStudent('${student._id}')" class="btn btn-danger btn-sm float-right">Delete</button>
+                        <button onclick="editStudent('${student._id}')" class="btn btn-warning btn-sm float-right mr-2">Edit</button>
+                    </li>
+                `;
+            });
+        }
+
+        document.getElementById('add-student-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const age = document.getElementById('age').value;
+            const gender = document.getElementById('gender').value;
+            const major = document.getElementById('major').value;
+
+            const res = await fetch(`${apiBaseUrl}/students`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, age, gender, major })
+            });
+            if (res.ok) {
+                fetchStudents();
+            }
+        });
+
+        async function deleteStudent(id) {
+            await fetch(`${apiBaseUrl}/students/${id}`, { method: 'DELETE' });
+            fetchStudents();
+        }
+
+        fetchStudents();
+    </script>
+</body>
+</html>
